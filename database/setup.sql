@@ -25,3 +25,20 @@ VALUES
 ('Blood Donation Camp', 'Donate blood and save lives. Every drop counts!', '2023-11-20 08:00:00', 'City Hospital, NY', 'Red Cross', 'support@redcross.org', '555-123-4567', 'https://redcross.org', 'https://example.com/blooddonation.jpg'),
 ('Tree Plantation Drive', 'Join us in planting trees to make our city greener.', '2023-11-25 07:30:00', 'Green Valley Park, NY', 'Eco Warriors', 'team@ecowarriors.org', '444-555-6666', 'https://ecowarriors.org', 'https://example.com/treeplantation.jpg'),
 ('Charity Run', 'Participate in our charity run to support underprivileged children.', '2023-12-10 06:00:00', 'Riverside Park, NY', 'Run for Hope', 'events@runforhope.org', '333-222-1111', 'https://runforhope.org', 'https://example.com/charityrun.jpg');
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(40) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('staff', 'user')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO users (username, password_hash, email, role) 
+VALUES 
+('admin_user', 'hashed_password_1', 'admin@example.com', 'staff'),
+('john_doe', 'hashed_password_2', 'john.doe@example.com', 'user'),
+('jane_smith', 'hashed_password_3', 'jane.smith@example.com', 'user'),
+('event_manager', 'hashed_password_4', 'manager@example.com', 'staff'),
+('alice_wonder', 'hashed_password_5', 'alice.wonder@example.com', 'user');
