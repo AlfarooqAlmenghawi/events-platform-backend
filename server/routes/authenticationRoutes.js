@@ -45,4 +45,28 @@ router.post("/register", async (request, response) => {
   }
 });
 
+router.get("/verify/:token", async (request, response) => {
+  try {
+    const { token } = request.params;
+
+    const user = await SQL_DATABASE.query(
+      "SELECT * FROM users WHERE verification_token = $1",
+      [token]
+    );
+
+    if (user.rowCount === 0) {
+      return response.status(400).send("Invalid token");
+    }
+
+    await SQL_DATABASE.query(
+      "UPDATE users SET email_verified = true, verification_token = NULL WHERE verification_token = $1",
+      [token]
+    );
+
+    response.json({ message: "Email verified successfully!" });
+  } catch (error) {
+    response.status(500).send("Error verifying email");
+  }
+});
+
 module.exports = router;
