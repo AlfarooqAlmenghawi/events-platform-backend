@@ -69,4 +69,49 @@ router.get("/verify/:token", async (request, response) => {
   }
 });
 
+router.post("/login", async (request, response) => {
+  try {
+    const { email, password } = request.body;
+
+    const result = await SQL_DATABASE.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return response.status(400).json({ error: "Invalid email or password" });
+    }
+
+    const user = { ...result.rows[0] };
+    // Check if the password matches
+    // Use bcrypt to compare the hashed password with the provided password
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+    if (!isValidPassword) {
+      return response.status(400).json({ error: "Invalid email or password" });
+    }
+
+    if (!user.email_verified) {
+      return response.status(400).json({ error: "Email not verified" });
+    }
+
+    // Delete sensitive keys for security before sending user object
+    delete user.verification_token;
+    delete user.password_hash;
+
+    const token = JWT.sign(
+      { ...user },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" } // Token expires in 7 days
+    );
+
+    return response
+      .status(200)
+      .json({ message: "Login successful!", user, token });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    return response.status(500).json({ error: "Error logging in" });
+  }
+});
+
 module.exports = router;
