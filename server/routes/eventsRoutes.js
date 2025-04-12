@@ -3,6 +3,7 @@ const router = express.Router();
 
 const SQL_DATABASE = require("../../database/connection.js");
 const authenticateJWT = require("../../utils/authenticateJWT.js");
+const e = require("express");
 
 router.get("/", async (request, response) => {
   try {
@@ -13,6 +14,25 @@ router.get("/", async (request, response) => {
   }
 });
 
+router.get("/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+
+    const result = await SQL_DATABASE.query(
+      "SELECT * FROM events WHERE id = $1",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("Event not found");
+    }
+
+    response.status(200).send(result.rows[0]);
+  } catch (error) {
+    response.status(500).send("Error retrieving event");
+  }
+});
+
 router.post("/", authenticateJWT, async (request, response) => {
   try {
     const {
@@ -20,7 +40,6 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_description,
       event_date,
       event_location,
-      event_organizer,
       event_organizer_phone,
       event_organizer_website,
     } = request.body;
@@ -30,13 +49,11 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_description,
       event_date,
       event_location,
-      event_organizer,
+      event_organizer: request.user.first_name + " " + request.user.last_name,
       event_organizer_email: request.user.email,
       event_organizer_phone,
       event_organizer_website,
     };
-
-    console.log("Data received:", data);
 
     if (request.user.role !== "staff") {
       return response.status(403).send("Only staff can create events");
@@ -58,8 +75,6 @@ router.post("/", authenticateJWT, async (request, response) => {
     // response.status(200).send(request.user.role);
     response.status(201).send("Event created successfully");
   } catch (error) {
-    console.error("Error creating event:", error);
-
     if (error.code === "23505") {
       // Unique violation error code
       return response.status(409).send("Event already exists");
@@ -70,6 +85,98 @@ router.post("/", authenticateJWT, async (request, response) => {
     }
 
     response.status(500).send("Error creating event");
+  }
+});
+
+router.delete("/:id", authenticateJWT, async (request, response) => {
+  try {
+    const { id } = request.params;
+
+    if (request.user.role !== "staff") {
+      return response.status(403).send("Only staff can delete events");
+    }
+
+    const eventToDelete = await SQL_DATABASE.query(
+      "SELECT * FROM events WHERE id = $1",
+      [id]
+    );
+
+    if (eventToDelete.rows[0].event_organizer_email !== request.user.email) {
+      return response
+        .status(403)
+        .send("You are not authorized to delete this event");
+    }
+
+    if (eventToDelete.rowCount === 0) {
+      console.log("Event not found");
+      return response.status(404).send("Event not found");
+    }
+
+    const result = await SQL_DATABASE.query(
+      "DELETE FROM events WHERE id = $1 RETURNING *",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("Event not found");
+    }
+
+    response.status(200).send("Event deleted successfully");
+  } catch (error) {
+    response.status(500).send("Error deleting event");
+  }
+});
+router.put("/:id", authenticateJWT, async (request, response) => {
+  try {
+    const { id } = request.params;
+    const {
+      event_title,
+      event_description,
+      event_date,
+      event_location,
+      event_organizer_phone,
+      event_organizer_website,
+    } = request.body;
+
+    if (request.user.role !== "staff") {
+      return response.status(403).send("Only staff can update events");
+    }
+
+    const eventToUpdate = await SQL_DATABASE.query(
+      "SELECT * FROM events WHERE id = $1",
+      [id]
+    );
+
+    if (eventToUpdate.rows[0].event_organizer_email !== request.user.email) {
+      return response
+        .status(403)
+        .send("You are not authorized to touch this event");
+    }
+
+    const result = await SQL_DATABASE.query(
+      "UPDATE events SET event_title = $1, event_description = $2, event_date = $3, event_location = $4, event_organizer_phone = $5, event_organizer_website = $6 WHERE id = $7 RETURNING *",
+      [
+        event_title,
+        event_description,
+        event_date,
+        event_location,
+        event_organizer_phone,
+        event_organizer_website,
+        id,
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("Event not found");
+    }
+
+    response.status(200).send("Event updated successfully");
+  } catch (error) {
+    if (error.code === "23505") {
+      return response.status(409).send("Event already exists");
+    }
+
+    response.status(500).send("Error updating event");
   }
 });
 
