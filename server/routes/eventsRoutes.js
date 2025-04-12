@@ -180,4 +180,29 @@ router.put("/:id", authenticateJWT, async (request, response) => {
   }
 });
 
+router.get("/:id/attendees", async (request, response) => {
+  try {
+    const { id } = request.params;
+
+    const result = await SQL_DATABASE.query(
+      `
+      SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.join_date, u.email_verified
+      FROM users u
+      JOIN user_events ue ON u.id = ue.user_id
+      WHERE ue.event_id = $1
+    `,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("No attendees found for this event");
+    }
+
+    response.status(200).json(result.rows);
+  } catch (error) {
+    console.log("Error retrieving event's attendees:", error);
+    response.status(500).send("Error retrieving event's attendees");
+  }
+});
+
 module.exports = router;
