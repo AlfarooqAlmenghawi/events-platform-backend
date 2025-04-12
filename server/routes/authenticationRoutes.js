@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const sendVerificationEmail = require("../../utils/sendEmail.js");
+const authenticateJWT = require("../../utils/authenticateJWT.js");
 const JWT = require("jsonwebtoken");
 
 const SQL_DATABASE = require("../../database/connection.js");
@@ -111,6 +112,27 @@ router.post("/login", async (request, response) => {
   } catch (error) {
     console.error("Error logging in:", error);
     return response.status(500).json({ error: "Error logging in" });
+  }
+});
+
+router.get("/profile", authenticateJWT, async (request, response) => {
+  try {
+    const result = await SQL_DATABASE.query(
+      "SELECT * FROM users WHERE id = $1",
+      [request.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).json({ error: "User not found" });
+    }
+
+    delete result.rows[0].verification_token;
+    delete result.rows[0].password_hash;
+
+    return response.json(result.rows[0]);
+  } catch (error) {
+    console.error("Database error:", error);
+    return response.status(500).json({ error: "Error retrieving profile" });
   }
 });
 
