@@ -100,9 +100,9 @@ router.post("/login", async (request, response) => {
     delete user.password_hash;
 
     const token = JWT.sign(
-      { ...user },
+      { id: user.id, role: user.role }, // keep it minimal
       process.env.JWT_SECRET,
-      { expiresIn: "7d" } // Token expires in 7 days
+      { expiresIn: "7d" }
     );
 
     return response
