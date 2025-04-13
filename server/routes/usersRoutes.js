@@ -10,7 +10,7 @@ const SQL_DATABASE = require("../../database/connection.js");
 router.get("/", async (request, response) => {
   try {
     const results = await SQL_DATABASE.query(
-      "SELECT id, first_name, last_name, email, role, join_date, email_verified FROM users"
+      "SELECT id, first_name, last_name, email, join_date, email_verified FROM users"
     );
     response.status(200).send(results.rows);
   } catch (error) {

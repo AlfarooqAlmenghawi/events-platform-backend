@@ -14,7 +14,7 @@ const authenticateJWT = async (request, response, next) => {
 
     const decoded = JWT.verify(token, process.env.JWT_SECRET);
     const result = await SQL_DATABASE.query(
-      "SELECT id, first_name, last_name, email, role, join_date, email_verified FROM users WHERE id = $1",
+      "SELECT id, first_name, last_name, email, join_date, email_verified FROM users WHERE id = $1",
       [decoded.id]
     );
 

@@ -11,7 +11,7 @@ const SQL_DATABASE = require("../../database/connection.js");
 
 router.post("/register", async (request, response) => {
   try {
-    const { first_name, last_name, email, password, role } = request.body;
+    const { first_name, last_name, email, password } = request.body;
 
     const existingUser = await SQL_DATABASE.query(
       "SELECT * FROM users WHERE email = $1",
@@ -26,16 +26,8 @@ router.post("/register", async (request, response) => {
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
     await SQL_DATABASE.query(
-      "INSERT INTO users (first_name, last_name, email, password_hash, role, verification_token, email_verified) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-      [
-        first_name,
-        last_name,
-        email,
-        hashedPassword,
-        role,
-        verificationToken,
-        false,
-      ]
+      "INSERT INTO users (first_name, last_name, email, password_hash, verification_token, email_verified) VALUES ($1, $2, $3, $4, $5, $6)",
+      [first_name, last_name, email, hashedPassword, verificationToken, false]
     );
 
     await sendVerificationEmail(email, verificationToken);
@@ -101,7 +93,7 @@ router.post("/login", async (request, response) => {
     delete user.password_hash;
 
     const token = JWT.sign(
-      { id: user.id, role: user.role }, // keep it minimal
+      { id: user.id }, // keep it minimal
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );

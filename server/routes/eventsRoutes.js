@@ -55,10 +55,6 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_organizer_website,
     };
 
-    if (request.user.role !== "staff") {
-      return response.status(403).send("Only staff can create events");
-    }
-
     await SQL_DATABASE.query(
       "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [
@@ -72,7 +68,6 @@ router.post("/", authenticateJWT, async (request, response) => {
         data.event_organizer_website,
       ]
     );
-    // response.status(200).send(request.user.role);
     response.status(201).send("Event created successfully");
   } catch (error) {
     if (error.code === "23505") {
@@ -92,14 +87,18 @@ router.delete("/:id", authenticateJWT, async (request, response) => {
   try {
     const { id } = request.params;
 
-    if (request.user.role !== "staff") {
-      return response.status(403).send("Only staff can delete events");
-    }
-
     const eventToDelete = await SQL_DATABASE.query(
       "SELECT * FROM events WHERE id = $1",
       [id]
     );
+
+    if (eventToDelete.rowCount === 0) {
+      return response.status(404).send("Event not found");
+    }
+
+    // Check if the user is the event organizer
+    // Assuming the event_organizer_email is stored in the database
+    // and matches the user's email
 
     if (eventToDelete.rows[0].event_organizer_email !== request.user.email) {
       return response
@@ -137,10 +136,6 @@ router.put("/:id", authenticateJWT, async (request, response) => {
       event_organizer_phone,
       event_organizer_website,
     } = request.body;
-
-    if (request.user.role !== "staff") {
-      return response.status(403).send("Only staff can update events");
-    }
 
     const eventToUpdate = await SQL_DATABASE.query(
       "SELECT * FROM events WHERE id = $1",
@@ -186,7 +181,7 @@ router.get("/:id/attendees", async (request, response) => {
 
     const result = await SQL_DATABASE.query(
       `
-      SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.join_date, u.email_verified
+      SELECT u.id, u.first_name, u.last_name, u.email, u.join_date, u.email_verified
       FROM users u
       JOIN user_events ue ON u.id = ue.user_id
       WHERE ue.event_id = $1
