@@ -34,6 +34,7 @@ router.post("/register", async (request, response) => {
 
     response.json({ message: "User registered! Please verify your email." });
   } catch (error) {
+    console.error("Error registering user:", error);
     response.status(500).send("Error registering user");
   }
 });

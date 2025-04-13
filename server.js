@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
-require("dotenv").config();
+
+const ENV = process.env.NODE_ENV || "development";
+require("dotenv").config({
+  path: `${__dirname}/.env.${ENV}`,
+});
 
 const routes = require("./server/index.js");
 
