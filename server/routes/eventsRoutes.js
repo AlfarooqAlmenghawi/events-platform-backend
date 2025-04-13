@@ -200,4 +200,29 @@ router.get("/:id/attendees", async (request, response) => {
   }
 });
 
+router.post("/:id/signup", authenticateJWT, async (request, response) => {
+  try {
+    const user_id = request.user.id;
+    const event_id = request.params.id;
+
+    const result = await SQL_DATABASE.query(
+      `
+      INSERT INTO user_events (user_id, event_id)
+      VALUES ($1, $2)
+      ON CONFLICT DO NOTHING
+      RETURNING *
+    `,
+      [user_id, event_id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(409).send("User already signed up for this event");
+    }
+
+    return response.status(201).json({ message: "Signup successful" });
+  } catch (err) {
+    return response.status(500).json({ error: "Signup failed" });
+  }
+});
+
 module.exports = router;

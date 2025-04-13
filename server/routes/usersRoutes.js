@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const JWT = require("jsonwebtoken");
 
 const SQL_DATABASE = require("../../database/connection.js");
+const authenticateJWT = require("../../utils/authenticateJWT.js");
 
 router.get("/", async (request, response) => {
   try {
@@ -18,7 +19,7 @@ router.get("/", async (request, response) => {
   }
 });
 
-router.get("/:id/events", async (request, response) => {
+router.get("/:id/events", authenticateJWT, async (request, response) => {
   try {
     const { id } = request.params;
 
@@ -36,7 +37,7 @@ router.get("/:id/events", async (request, response) => {
       return response.status(404).send("No events found for this user");
     }
 
-    response.status(200).json(result.rows);
+    response.status(200).json({ user: request.user, events: result.rows });
   } catch (error) {
     console.log("Error retrieving user's events:", error);
     response.status(500).send("Error retrieving user's events");
