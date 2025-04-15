@@ -19,6 +19,24 @@ router.get("/", async (request, response) => {
   }
 });
 
+router.get("/:id", async (request, response) => {
+  try {
+    const { id } = request.params;
+    const result = await SQL_DATABASE.query(
+      "SELECT id, first_name, last_name, email, join_date, email_verified FROM users WHERE id = $1",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("User not found");
+    }
+
+    response.status(200).send(result.rows[0]);
+  } catch (error) {
+    response.status(500).send("Error retrieving user from database");
+  }
+});
+
 router.get("/:id/events", authenticateJWT, async (request, response) => {
   try {
     const { id } = request.params;
