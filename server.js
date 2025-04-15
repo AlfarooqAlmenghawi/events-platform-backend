@@ -4,8 +4,7 @@ const cors = require("cors");
 
 app.use(
   cors({
-    origin: "http://localhost:5173/",
-    credentials: true, // include this if you're using cookies or authorization headers
+    origin: "http://localhost:5173",
   })
 );
 
