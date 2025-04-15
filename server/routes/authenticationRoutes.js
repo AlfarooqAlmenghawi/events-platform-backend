@@ -129,4 +129,27 @@ router.get("/profile", authenticateJWT, async (request, response) => {
   }
 });
 
+router.get("/my-events", authenticateJWT, async (request, response) => {
+  try {
+    const result = await SQL_DATABASE.query(
+      `
+      SELECT e.*
+      FROM events e
+      JOIN user_events ue ON e.id = ue.event_id
+      WHERE ue.user_id = $1
+    `,
+      [request.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("No events found for this user");
+    }
+
+    response.status(200).json({ user: request.user, events: result.rows });
+  } catch (error) {
+    console.log("Error retrieving user's events:", error);
+    response.status(500).send("Error retrieving user's events");
+  }
+});
+
 module.exports = router;
