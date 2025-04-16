@@ -3,7 +3,7 @@ const router = express.Router();
 
 const SQL_DATABASE = require("../../database/connection.js");
 const authenticateJWT = require("../../utils/authenticateJWT.js");
-const e = require("express");
+const optionalCheckIfSignedInJWT = require("../../utils/optionalCheckIfSignedInJWT.js");
 
 router.get("/", async (request, response) => {
   try {
@@ -14,7 +14,7 @@ router.get("/", async (request, response) => {
   }
 });
 
-router.get("/:id", async (request, response) => {
+router.get("/:id", optionalCheckIfSignedInJWT, async (request, response) => {
   try {
     const { id } = request.params;
 
@@ -22,6 +22,22 @@ router.get("/:id", async (request, response) => {
       "SELECT * FROM events WHERE id = $1",
       [id]
     );
+
+    // Check if user is signed up for the event
+    const userId = request.user ? request.user.id : null;
+    if (userId) {
+      const userEventResult = await SQL_DATABASE.query(
+        "SELECT * FROM user_events WHERE user_id = $1 AND event_id = $2",
+        [userId, id]
+      );
+      if (userEventResult.rowCount > 0) {
+        result.rows[0].is_signed_up = true;
+      } else {
+        result.rows[0].is_signed_up = false;
+      }
+    } else {
+      result.rows[0].is_signed_up = false;
+    }
 
     if (result.rowCount === 0) {
       return response.status(404).send("Event not found");
