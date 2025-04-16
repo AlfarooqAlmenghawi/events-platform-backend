@@ -241,4 +241,28 @@ router.post("/:id/signup", authenticateJWT, async (request, response) => {
   }
 });
 
+router.delete("/:id/signup", authenticateJWT, async (request, response) => {
+  try {
+    const user_id = request.user.id;
+    const event_id = request.params.id;
+
+    const result = await SQL_DATABASE.query(
+      `
+        DELETE FROM user_events
+        WHERE user_id = $1 AND event_id = $2
+        RETURNING *
+      `,
+      [user_id, event_id]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("User not signed up for this event");
+    }
+
+    return response.status(200).json({ message: "Unsignup successful" });
+  } catch (err) {
+    return response.status(500).json({ error: "Unsignup failed" });
+  }
+});
+
 module.exports = router;
