@@ -71,8 +71,8 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_organizer_website,
     };
 
-    await SQL_DATABASE.query(
-      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+    const results = await SQL_DATABASE.query(
+      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
       [
         data.event_title,
         data.event_description,
@@ -84,7 +84,7 @@ router.post("/", authenticateJWT, async (request, response) => {
         data.event_organizer_website,
       ]
     );
-    response.status(201).send("Event created successfully");
+    response.status(201).send(results.rows[0]);
   } catch (error) {
     if (error.code === "23505") {
       // Unique violation error code
