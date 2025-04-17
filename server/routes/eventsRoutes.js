@@ -214,9 +214,10 @@ router.get("/:id/attendees", async (request, response) => {
       [id]
     );
 
-    if (result.rowCount === 0) {
-      return response.status(404).send("No attendees found for this event");
-    }
+    // Remove this check if you want to return an empty array instead of a 404, in this case we want to do so to handle empty arrays in the frontend
+    // if (result.rowCount === 0) {
+    //   return response.status(404).send("No attendees found for this event");
+    // }
 
     response.status(200).json(result.rows);
   } catch (error) {
