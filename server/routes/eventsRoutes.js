@@ -4,6 +4,7 @@ const router = express.Router();
 const SQL_DATABASE = require("../../database/connection.js");
 const authenticateJWT = require("../../utils/authenticateJWT.js");
 const optionalCheckIfSignedInJWT = require("../../utils/optionalCheckIfSignedInJWT.js");
+const e = require("express");
 
 router.get("/", async (request, response) => {
   try {
@@ -58,6 +59,7 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_location,
       event_organizer_phone,
       event_organizer_website,
+      event_date_end,
     } = request.body;
 
     const data = {
@@ -69,10 +71,11 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_organizer_email: request.user.email,
       event_organizer_phone,
       event_organizer_website,
+      event_date_end,
     };
 
     const results = await SQL_DATABASE.query(
-      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website, event_date_end) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
       [
         data.event_title,
         data.event_description,
@@ -82,6 +85,7 @@ router.post("/", authenticateJWT, async (request, response) => {
         data.event_organizer_email,
         data.event_organizer_phone,
         data.event_organizer_website,
+        data.event_date_end,
       ]
     );
     response.status(201).send(results.rows[0]);
@@ -94,7 +98,11 @@ router.post("/", authenticateJWT, async (request, response) => {
       // Not null violation error code
       return response.status(400).send("Missing required fields");
     }
-
+    if (error.code === "22001") {
+      // String data, right truncation error code
+      return response.status(400).send("Data too long for one of the fields");
+    }
+    console.error("Error creating event:", error);
     response.status(500).send("Error creating event");
   }
 });
