@@ -152,4 +152,26 @@ router.get("/my-events", authenticateJWT, async (request, response) => {
   }
 });
 
+router.get("/my-created-events", authenticateJWT, async (request, response) => {
+  try {
+    const result = await SQL_DATABASE.query(
+      `
+      SELECT *
+      FROM events
+      WHERE event_organizer_email = $1
+    `,
+      [request.user.email]
+    );
+
+    if (result.rowCount === 0) {
+      return response.status(404).send("No events created found for this user");
+    }
+
+    response.status(200).json({ user: request.user, events: result.rows });
+  } catch (error) {
+    console.log("Error retrieving user's events:", error);
+    response.status(500).send("Error retrieving user's events");
+  }
+});
+
 module.exports = router;

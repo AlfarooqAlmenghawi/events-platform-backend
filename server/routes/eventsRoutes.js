@@ -141,6 +141,7 @@ router.delete("/:id", authenticateJWT, async (request, response) => {
     response.status(500).send("Error deleting event");
   }
 });
+
 router.put("/:id", authenticateJWT, async (request, response) => {
   try {
     const { id } = request.params;
