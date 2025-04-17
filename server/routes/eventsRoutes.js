@@ -225,6 +225,46 @@ router.get("/:id/attendees", async (request, response) => {
   }
 });
 
+router.delete(
+  "/:id/attendees/:attendee_id",
+  authenticateJWT,
+  async (request, response) => {
+    try {
+      const { id, attendee_id } = request.params;
+
+      // Check if the user is the event organizer
+      const eventToUpdate = await SQL_DATABASE.query(
+        "SELECT * FROM events WHERE id = $1",
+        [id]
+      );
+
+      if (eventToUpdate.rows[0].event_organizer_email !== request.user.email) {
+        return response
+          .status(403)
+          .send("You are not authorized to remove attendees from this event");
+      }
+
+      const result = await SQL_DATABASE.query(
+        `
+      DELETE FROM user_events
+      WHERE event_id = $1 AND user_id = $2
+      RETURNING *
+    `,
+        [id, attendee_id]
+      );
+
+      if (result.rowCount === 0) {
+        return response.status(404).send("Attendee not found");
+      }
+
+      response.status(200).send("Attendee removed successfully");
+    } catch (error) {
+      console.error("Error removing attendee:", error);
+      response.status(500).send("Error removing attendee");
+    }
+  }
+);
+
 router.post("/:id/signup", authenticateJWT, async (request, response) => {
   try {
     const user_id = request.user.id;
