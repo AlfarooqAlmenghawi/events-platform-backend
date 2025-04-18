@@ -24,6 +24,10 @@ router.get("/:id", optionalCheckIfSignedInJWT, async (request, response) => {
       [id]
     );
 
+    if (result.rowCount === 0) {
+      return response.status(404).send("Event not found");
+    }
+
     // Check if user is signed up for the event
     const userId = request.user ? request.user.id : null;
     if (userId) {
@@ -36,13 +40,18 @@ router.get("/:id", optionalCheckIfSignedInJWT, async (request, response) => {
       } else {
         result.rows[0].is_signed_up = false;
       }
+
+      if (result.rows[0].event_organizer_email === request.user.email) {
+        result.rows[0].is_owner = true;
+      } else {
+        result.rows[0].is_owner = false;
+      }
     } else {
       result.rows[0].is_signed_up = false;
+      result.rows[0].is_owner = false;
     }
 
-    if (result.rowCount === 0) {
-      return response.status(404).send("Event not found");
-    }
+    // Check if the user is the event organizer
 
     response.status(200).send(result.rows[0]);
   } catch (error) {
