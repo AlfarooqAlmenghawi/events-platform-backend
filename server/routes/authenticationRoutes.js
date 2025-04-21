@@ -199,11 +199,15 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const { data: publicUrl } = supabase.storage
+  const publicUrlResult = supabase.storage
     .from("event-banners")
     .getPublicUrl(fileName);
 
-  return res.json({ url: publicUrl.publicUrl });
+  if (!publicUrlResult.data) {
+    return res.status(500).json({ error: "Could not generate public URL" });
+  }
+
+  return res.json({ url: publicUrlResult.data.publicUrl });
 });
 
 module.exports = router;
