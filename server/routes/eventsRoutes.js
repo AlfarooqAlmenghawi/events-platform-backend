@@ -68,6 +68,7 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_organizer_phone,
       event_organizer_website,
       event_date_end,
+      event_image_url,
     } = request.body;
 
     const data = {
@@ -80,10 +81,11 @@ router.post("/", authenticateJWT, async (request, response) => {
       event_organizer_phone,
       event_organizer_website,
       event_date_end,
+      event_image_url,
     };
 
     const results = await SQL_DATABASE.query(
-      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website, event_date_end) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website, event_date_end) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
       [
         data.event_title,
         data.event_description,
@@ -94,6 +96,7 @@ router.post("/", authenticateJWT, async (request, response) => {
         data.event_organizer_phone,
         data.event_organizer_website,
         data.event_date_end,
+        data.event_image_url,
       ]
     );
     response.status(201).send(results.rows[0]);
