@@ -85,7 +85,7 @@ router.post("/", authenticateJWT, async (request, response) => {
     };
 
     const results = await SQL_DATABASE.query(
-      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website, event_date_end) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+      "INSERT INTO events (event_title, event_description, event_date, event_location, event_organizer, event_organizer_email, event_organizer_phone, event_organizer_website, event_date_end, event_image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
       [
         data.event_title,
         data.event_description,
