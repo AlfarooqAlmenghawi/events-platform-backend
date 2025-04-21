@@ -4,7 +4,6 @@ const router = express.Router();
 const SQL_DATABASE = require("../../database/connection.js");
 const authenticateJWT = require("../../utils/authenticateJWT.js");
 const optionalCheckIfSignedInJWT = require("../../utils/optionalCheckIfSignedInJWT.js");
-const e = require("express");
 
 router.get("/", async (request, response) => {
   try {

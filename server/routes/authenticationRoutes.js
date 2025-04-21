@@ -6,8 +6,19 @@ const bcrypt = require("bcrypt");
 const sendVerificationEmail = require("../../utils/sendEmail.js");
 const authenticateJWT = require("../../utils/authenticateJWT.js");
 const JWT = require("jsonwebtoken");
+const multer = require("multer");
+const { createClient } = require("@supabase/supabase-js");
 
 const SQL_DATABASE = require("../../database/connection.js");
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SECRET
+);
+
+// Configure multer to store file in memory
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 router.post("/register", async (request, response) => {
   try {
@@ -172,6 +183,27 @@ router.get("/my-created-events", authenticateJWT, async (request, response) => {
     console.log("Error retrieving user's events:", error);
     response.status(500).send("Error retrieving user's events");
   }
+});
+
+router.post("/upload", upload.single("image"), async (req, res) => {
+  const file = req.file;
+  if (!file) return res.status(400).json({ error: "No file uploaded" });
+
+  const fileName = `${Date.now()}-${file.originalname}`;
+
+  const { data, error } = await supabase.storage
+    .from("event-banners") // your bucket name
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype,
+    });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const { data: publicUrl } = supabase.storage
+    .from("event-banners")
+    .getPublicUrl(fileName);
+
+  return res.json({ url: publicUrl.publicUrl });
 });
 
 module.exports = router;
