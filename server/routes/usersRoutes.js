@@ -61,5 +61,5 @@ router.get("/:id/events", authenticateJWT, async (request, response) => {
     response.status(500).send("Error retrieving user's events");
   }
 });
-
+//
 module.exports = router;
