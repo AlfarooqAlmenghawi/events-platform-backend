@@ -171,6 +171,7 @@ router.put("/:id", authenticateJWT, async (request, response) => {
       event_location,
       event_organizer_phone,
       event_organizer_website,
+      event_image_url,
     } = request.body;
 
     const eventToUpdate = await SQL_DATABASE.query(
@@ -185,7 +186,7 @@ router.put("/:id", authenticateJWT, async (request, response) => {
     }
 
     const result = await SQL_DATABASE.query(
-      "UPDATE events SET event_title = $1, event_description = $2, event_date = $3, event_location = $4, event_organizer_phone = $5, event_organizer_website = $6 WHERE id = $7 RETURNING *",
+      "UPDATE events SET event_title = $1, event_description = $2, event_date = $3, event_location = $4, event_organizer_phone = $5, event_organizer_website = $6, event_image_url = $7 WHERE id = $8 RETURNING *",
       [
         event_title,
         event_description,
@@ -193,6 +194,7 @@ router.put("/:id", authenticateJWT, async (request, response) => {
         event_location,
         event_organizer_phone,
         event_organizer_website,
+        event_image_url,
         id,
       ]
     );
