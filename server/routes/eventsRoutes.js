@@ -7,8 +7,23 @@ const optionalCheckIfSignedInJWT = require("../../utils/optionalCheckIfSignedInJ
 
 router.get("/", async (request, response) => {
   try {
-    const results = await SQL_DATABASE.query("SELECT * FROM events");
-    response.status(200).send(results.rows);
+    const { search, sort_by, order } = request.query;
+
+    let query = "SELECT * FROM events";
+    const values = [];
+
+    if (search) {
+      values.push(`%${search}%`);
+      query += ` WHERE event_title ILIKE $1 OR event_description ILIKE $1 OR event_location ILIKE $1`;
+    }
+
+    if (sort_by === "event_date" || sort_by === "event_title") {
+      const direction = order === "desc" ? "DESC" : "ASC";
+      query += ` ORDER BY ${sort_by} ${direction}`;
+    }
+
+    const result = await SQL_DATABASE.query(query, values);
+    response.status(200).send(result.rows);
   } catch (error) {
     response.status(500).send("Error retrieving events from database");
   }
