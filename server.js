@@ -2,11 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-  })
-);
+app.use(cors({ origin: "*" }));
 
 const ENV = process.env.NODE_ENV || "development";
 require("dotenv").config({
