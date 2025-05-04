@@ -14,7 +14,9 @@ const sendVerificationEmail = async (email, token) => {
     to: email,
     subject: "Verify your Events Platform account",
     html: `<p>Click the link below to verify your email:</p>
-           <a href="https://example.com/api/users/verify/${token}">Verify Email</a>`,
+           <a href="https://alfarooq-events-platform.netlify.app/verify/${token}">Verify Email</a> <p>Or copy and paste this link into your browser:</p>
+           <p>https://alfarooq-events-platform.netlify.app/verify/${token}</p>
+           <p>If you did not create an account, please ignore this email.</p>`,
   };
 
   await transporter.sendMail(mailOptions);
