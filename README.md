@@ -3,7 +3,7 @@
 This is the backend API for the Events Platform web app, built with **Express.js**, **PostgreSQL**, and **JWT authentication**. It powers all core functionality including event management, user authentication, image uploads, and Google Calendar integration support.
 
 **Live API Base URL**:  
-`https://events-platform-backend-production.up.railway.app/`
+`https://events-platform-backend-5pjx.onrender.com/`
 
 **Frontend Repo**:  
 [Events Platform Frontend (React on Netlify)](https://github.com/AlfarooqAlmenghawi/events-platform)
